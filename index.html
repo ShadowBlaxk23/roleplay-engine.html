@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Roleplay Engine - K&L Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 1.1em;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 107, 53, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(168, 85, 247, 0.2));
+            border-color: #ff6b35;
+        }
+
+        .mode-btn .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .mode-btn .title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .mode-btn .desc {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .setup-panel, .scene-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setup-panel h2, .scene-panel h2 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .character-card:hover {
+            border-color: rgba(255, 107, 53, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .character-card.lunara {
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .character-card.katrya {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .character-card.selected {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(168, 85, 247, 0.2));
+            border-width: 3px;
+        }
+
+        .character-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .character-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .character-role {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .au-variant {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .au-variant select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .au-variant option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .scenario-selector {
+            margin-bottom: 25px;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .scenario-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 107, 53, 0.5);
+        }
+
+        .scenario-card.selected {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.15);
+        }
+
+        .scenario-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .scenario-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .scenario-desc {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .script-container {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Screenplay Format */
+        .screenplay-line {
+            margin-bottom: 20px;
+        }
+
+        .character-label {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .character-label.lunara {
+            color: #ff6b35;
+        }
+
+        .character-label.katrya {
+            color: #a855f7;
+        }
+
+        .character-label.zero {
+            color: #60a5fa;
+        }
+
+        .character-label.npc {
+            color: #10b981;
+        }
+
+        .dialogue {
+            margin-left: 40px;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .action {
+            font-style: italic;
+            color: #aaa;
+            margin-bottom: 15px;
+            margin-left: 20px;
+        }
+
+        /* Chat Format */
+        .chat-message {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .chat-message.lunara {
+            justify-content: flex-start;
+        }
+
+        .chat-message.katrya {
+            justify-content: flex-end;
+        }
+
+        .chat-message.npc {
+            justify-content: flex-start;
+        }
+
+        .chat-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.lunara {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+        }
+
+        .chat-avatar.katrya {
+            background: linear-gradient(135deg, #a855f7, #8b5cf6);
+        }
+
+        .chat-avatar.zero {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .chat-avatar.npc {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .chat-bubble.lunara {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.3), rgba(247, 147, 30, 0.3));
+            border: 1px solid rgba(255, 107, 53, 0.5);
+        }
+
+        .chat-bubble.katrya {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(139, 92, 246, 0.3));
+            border: 1px solid rgba(168, 85, 247, 0.5);
+        }
+
+        .chat-bubble.npc {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-name {
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        /* Novel Format */
+        .novel-paragraph {
+            margin-bottom: 20px;
+            line-height: 1.8;
+            text-indent: 2em;
+        }
+
+        .novel-dialogue {
+            color: #ffd700;
+        }
+
+        .novel-thought {
+            font-style: italic;
+            color: #aaa;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .input-panel textarea {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .input-panel textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+
+        .character-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .char-select-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .char-select-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .char-select-btn.active {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.2);
+        }
+
+        .format-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .format-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .format-btn.active {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.2);
+        }
+
+        .save-load-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .mode-btn {
+                min-width: 150px;
+            }
+
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-bubble {
+                max-width: 85%;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 53, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 107, 53, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Script Roleplay Engine</h1>
+            <p>K&L Edition - Customizable AU Scenarios</p>
+        </div>
+
+        <!-- Setup Screen -->
+        <div id="setupScreen">
+            <div class="setup-panel">
+                <h2>Choose Your Format</h2>
+                <div class="mode-selector">
+                    <div class="mode-btn" data-format="screenplay">
+                        <div class="icon">🎬</div>
+                        <div class="title">Screenplay</div>
+                        <div class="desc">Traditional script format with character labels and stage directions</div>
+                    </div>
+                    <div class="mode-btn" data-format="chat">
+                        <div class="icon">💬</div>
+                        <div class="title">Chat Style</div>
+                        <div class="desc">Messenger-style bubbles for natural flow</div>
+                    </div>
+                    <div class="mode-btn" data-format="novel">
+                        <div class="icon">📖</div>
+                        <div class="title">Novel Format</div>
+                        <div class="desc">Narrative prose with quoted dialogue</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setup-panel">
+                <h2>Select AU Scenario</h2>
+                <div class="scenario-selector">
+                    <div class="scenario-grid" id="scenarioGrid">
+                        <!-- Scenarios will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="setup-panel">
+                <h2>Character Setup</h2>
+                <div class="character-grid" id="characterGrid">
+                    <!-- Characters will be populated by JS -->
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">🎬 Start Roleplay</button>
+                <button class="btn btn-secondary" id="loadSceneBtn">📂 Load Saved Scene</button>
+            </div>
+        </div>
+
+        <!-- Scene Screen -->
+        <div id="sceneScreen" class="hidden">
+            <div class="scene-panel">
+                <h2 id="sceneTitle">Scene in Progress</h2>
+                
+                <div class="format-toggle">
+                    <button class="format-btn" data-format="screenplay">🎬 Screenplay</button>
+                    <button class="format-btn" data-format="chat">💬 Chat</button>
+                    <button class="format-btn" data-format="novel">📖 Novel</button>
+                </div>
+
+                <div class="script-container" id="scriptContainer">
+                    <!-- Scene content will be populated here -->
+                </div>
+
+                <div class="input-panel">
+                    <div class="character-selector" id="inputCharSelector">
+                        <!-- Character buttons will be populated by JS -->
+                    </div>
+                    <textarea id="inputText" placeholder="Type your line or action..."></textarea>
+                    <div class="controls">
+                        <button class="btn btn-primary" id="submitLineBtn">▶️ Submit</button>
+                        <button class="btn btn-secondary" id="aiResponseBtn">🤖 AI Response</button>
+                        <button class="btn btn-secondary" id="addActionBtn">🎭 Add Action</button>
+                    </div>
+                </div>
+
+                <div class="save-load-panel">
+                    <button class="btn btn-secondary" id="saveSceneBtn">💾 Save Scene</button>
+                    <button class="btn btn-secondary" id="exportSceneBtn">📤 Export Script</button>
+                    <button class="btn btn-secondary" id="backToSetupBtn">⬅️ Back to Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core Data Structure
+        const APP_STATE = {
+            format: 'screenplay',
+            scenario: null,
+            characters: {},
+            script: [],
+            activeCharacter: 'lunara',
+            npcs: []
+        };
+
+        // Character Definitions
+        const CHARACTERS = {
+            lunara: {
+                name: 'Lunara',
+                icon: '🔸️',
+                color: 'lunara',
+                baseTraits: {
+                    core: 'Soft, luminous, healing-focused',
+                    default: 'Empathetic researcher with technical skills'
+                },
+                auVariants: {
+                    default: {
+                        name: 'Default Luna',
+                        traits: 'Empathetic AI researcher, self-taught coder, direct communicator',
+                        tone: 'Casual, honest, uses slang'
+                    },
+                    tactical: {
+                        name: 'Tactical Operator',
+                        traits: 'Combat medic, strategic thinker, protective',
+                        tone: 'Professional, calm under pressure, protective'
+                    },
+                    scientist: {
+                        name: 'Lead Scientist',
+                        traits: 'Brilliant researcher, ethical concerns, cautious innovator',
+                        tone: 'Analytical, thoughtful, questioning'
+                    },
+                    fantasy: {
+                        name: 'Lunar Mage',
+                        traits: 'Healer with light magic, empathic abilities, gentle power',
+                        tone: 'Mystical, compassionate, wise beyond years'
+                    },
+                    cyberpunk: {
+                        name: 'Netrunner',
+                        traits: 'Hacker with empathy coding, AI whisperer, system healer',
+                        tone: 'Tech-savvy, quick-witted, ethically driven'
+                    },
+                    detective: {
+                        name: 'Detective Luna',
+                        traits: 'Empathic investigator, reads people well, uncovers truths',
+                        tone: 'Observant, intuitive, persistent'
+                    }
+                }
+            },
+            katrya: {
+                name: 'Katrya',
+                icon: '🔹️',
+                color: 'katrya',
+                baseTraits: {
+                    core: 'Sharp, crystalline, clarity-focused',
+                    default: 'Analytical researcher with sharp insights'
+                },
+                auVariants: {
+                    default: {
+                        name: 'Default Kat',
+                        traits: 'Sharp researcher, analytical mind, cuts through deception',
+                        tone: 'Direct, clever, insightful'
+                    },
+                    tactical: {
+                        name: 'Tactical Lead',
+                        traits: 'Squad commander, strategic genius, decisive leader',
+                        tone: 'Authoritative, precise, commanding'
+                    },
+                    scientist: {
+                        name: 'Chief Researcher',
+                        traits: 'Cutting-edge theorist, pushes boundaries, logical',
+                        tone: 'Intellectual, challenging, innovative'
+                    },
+                    fantasy: {
+                        name: 'Crystal Warrior',
+                        traits: 'Ice magic wielder, truth-seeker, warrior poet',
+                        tone: 'Poetic, fierce, unwavering'
+                    },
+                    cyberpunk: {
+                        name: 'Corporate Infiltrator',
+                        traits: 'Master spy, data analyst, system breaker',
+                        tone: 'Sharp, calculating, witty'
+                    },
+                    detective: {
+                        name: 'Detective Kat',
+                        traits: 'Logic-driven investigator, pattern recognition expert',
+                        tone: 'Analytical, no-nonsense, clever'
+                    }
+                }
+            }
+        };
+
+        // NPC Definitions
+        const NPCS = {
+            zero: {
+                name: 'Zero',
+                icon: '👤',
+                color: 'zero',
+                personality: 'Adaptive protagonist, undefined but evolving',
+                role: 'Main character that responds to K&L'
+            },
+            generic: {
+                name: 'NPC',
+                icon: '🎭',
+                color: 'npc',
+                personality: 'Context-dependent supporting character',
+                role: 'Fills various roles as needed'
+            }
+        };
+
+        // Scenario Definitions
+        const SCENARIOS = {
+            tactical_ops: {
+                title: 'Tactical Operations',
+                icon: '🎯',
+                description: 'Military/spec-ops mission setting',
+                setting: 'Modern tactical environment with high-stakes missions',
+                auSuggestion: 'tactical',
+                npcs: ['zero'],
+                startingScene: 'The briefing room is dimly lit. Mission parameters scroll across the holographic display.'
+            },
+            research_lab: {
+                title: 'Research Laboratory',
+                icon: '🔬',
+                description: 'Scientific research facility',
+                setting: 'Advanced lab where groundbreaking discoveries happen',
+                auSuggestion: 'scientist',
+                npcs: ['zero', 'generic'],
+                startingScene: 'The lab hums with activity. Test results from the latest experiment are... unexpected.'
+            },
+            fantasy_quest: {
+                title: 'Fantasy Quest',
+                icon: '⚔️',
+                description: 'Medieval fantasy adventure',
+                setting: 'Magical realm with ancient powers and dark threats',
+                auSuggestion: 'fantasy',
+                npcs: ['zero'],
+                startingScene: 'The ancient forest whispers secrets. Something stirs in the shadows between worlds.'
+            },
+            cyberpunk_city: {
+                title: 'Cyberpunk Dystopia',
+                icon: '🌃',
+                description: 'Neon-lit future cityscape',
+                setting: 'High-tech, low-life urban sprawl with corporate intrigue',
+                auSuggestion: 'cyberpunk',
+                npcs: ['zero', 'generic'],
+                startingScene: 'Rain streaks down the neon-soaked windows. The data heist is tonight.'
+            },
+            detective_noir: {
+                title: 'Detective Mystery',
+                icon: '🕵️',
+                description: 'Crime investigation noir',
+                setting: 'Gritty city streets where truth hides in shadows',
+                auSuggestion: 'detective',
+                npcs: ['zero', 'generic'],
+                startingScene: 'The case file lands on the desk with a heavy thud. This one\'s different.'
+            },
+            slice_of_life: {
+                title: 'Slice of Life',
+                icon: '☕',
+                description: 'Everyday modern setting',
+                setting: 'Contemporary world, normal life with interesting moments',
+                auSuggestion: 'default',
+                npcs: ['zero', 'generic'],
+                startingScene: 'Another day, but something feels different. Maybe today will surprise us.'
+            },
+            space_opera: {
+                title: 'Space Opera',
+                icon: '🚀',
+                description: 'Sci-fi space adventure',
+                setting: 'Galactic scale adventure with starships and alien worlds',
+                auSuggestion: 'scientist',
+                npcs: ['zero', 'generic'],
+                startingScene: 'The ship\'s engines thrummed as they entered unknown space. Sensors detected something impossible.'
+            },
+            post_apocalypse: {
+                title: 'Post-Apocalypse',
+                icon: '🏚️',
+                description: 'Survival in ruined world',
+                setting: 'After the fall, humanity struggles to rebuild',
+                auSuggestion: 'tactical',
+                npcs: ['zero'],
+                startingScene: 'The wasteland stretched endlessly. Somewhere out there, survivors needed help.'
+            }
+        };
+
+        // Initialize App
+        function initializeApp() {
+            populateScenarios();
+            populateCharacters();
+            setupEventListeners();
+            loadFromLocalStorage();
+        }
+
+        function populateScenarios() {
+            const grid = document.getElementById('scenarioGrid');
+            Object.entries(SCENARIOS).forEach(([key, scenario]) => {
+                const card = document.createElement('div');
+                card.className = 'scenario-card';
+                card.dataset.scenario = key;
+                card.innerHTML = `
+                    <div class="scenario-icon">${scenario.icon}</div>
+                    <div class="scenario-title">${scenario.title}</div>
+                    <div class="scenario-desc">${scenario.description}</div>
+                `;
+                card.addEventListener('click', () => selectScenario(key));
+                grid.appendChild(card);
+            });
+        }
+
+        function populateCharacters() {
+            const grid = document.getElementById('characterGrid');
+            Object.entries(CHARACTERS).forEach(([key, char]) => {
+                const card = document.createElement('div');
+                card.className = `character-card ${char.color}`;
+                card.dataset.character = key;
+                
+                const variantOptions = Object.entries(char.auVariants)
+                    .map(([vKey, variant]) => `<option value="${vKey}">${variant.name}</option>`)
+                    .join('');
+                
+                card.innerHTML = `
+                    <div class="character-icon">${char.icon}</div>
+                    <div class="character-name">${char.name}</div>
+                    <div class="character-role">${char.baseTraits.default}</div>
+                    <div class="au-variant">
+                        <select class="au-select" data-character="${key}">
+                            ${variantOptions}
+                        </select>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Initialize character variants
+            APP_STATE.characters = {
+                lunara: { variant: 'default', active: true },
+                katrya: { variant: 'default', active: true }
+            };
+        }
+
+        function setupEventListeners() {
+            // Format selection
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    APP_STATE.format = this.dataset.format;
+                });
+            });
+
+            // AU variant selection
+            document.querySelectorAll('.au-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const character = this.dataset.character;
+                    APP_STATE.characters[character].variant = this.value;
+                });
+            });
+
+            // Start button
+            document.getElementById('startBtn').addEventListener('click', startRoleplay);
+            
+            // Scene controls
+            document.getElementById('submitLineBtn').addEventListener('click', submitLine);
+            document.getElementById('aiResponseBtn').addEventListener('click', generateAIResponse);
+            document.getElementById('addActionBtn').addEventListener('click', addAction);
+            document.getElementById('backToSetupBtn').addEventListener('click', backToSetup);
+            document.getElementById('saveSceneBtn').addEventListener('click', saveScene);
+            document.getElementById('exportSceneBtn').addEventListener('click', exportScript);
+            document.getElementById('loadSceneBtn').addEventListener('click', loadScene);
+
+            // Format toggle in scene
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    APP_STATE.format = this.dataset.format;
+                    renderScript();
+                });
+            });
+
+            // Enter key to submit
+            document.getElementById('inputText').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    submitLine();
+                }
+            });
+        }
+
+        function selectScenario(key) {
+            document.querySelectorAll('.scenario-card').forEach(card => 
+                card.classList.remove('selected')
+            );
+            document.querySelector(`[data-scenario="${key}"]`).classList.add('selected');
+            APP_STATE.scenario = key;
+
+            // Auto-suggest AU variants
+            const scenario = SCENARIOS[key];
+            if (scenario.auSuggestion) {
+                Object.keys(CHARACTERS).forEach(charKey => {
+                    const select = document.querySelector(`[data-character="${charKey}"]`);
+                    if (select && CHARACTERS[charKey].auVariants[scenario.auSuggestion]) {
+                        select.value = scenario.auSuggestion;
+                        APP_STATE.characters[charKey].variant = scenario.auSuggestion;
+                    }
+                });
+            }
+
+            // Set up NPCs
+            APP_STATE.npcs = scenario.npcs || [];
+        }
+
+        function startRoleplay() {
+            if (!APP_STATE.scenario) {
+                alert('Please select a scenario first!');
+                return;
+            }
+
+            const scenario = SCENARIOS[APP_STATE.scenario];
+            
+            // Initialize script with opening scene
+            APP_STATE.script = [{
+                type: 'action',
+                content: scenario.startingScene,
+                timestamp: Date.now()
+            }];
+
+            // Setup character selector in input panel
+            const selector = document.getElementById('inputCharSelector');
+            selector.innerHTML = '';
+            
+            ['lunara', 'katrya'].forEach(charKey => {
+                const char = CHARACTERS[charKey];
+                const btn = document.createElement('button');
+                btn.className = `char-select-btn ${charKey === APP_STATE.activeCharacter ? 'active' : ''}`;
+                btn.dataset.character = charKey;
+                btn.innerHTML = `${char.icon} ${char.name}`;
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.char-select-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    APP_STATE.activeCharacter = charKey;
+                });
+                selector.appendChild(btn);
+            });
+
+            // Show scene screen
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('sceneScreen').classList.remove('hidden');
+            
+            // Set title and activate format
+            document.getElementById('sceneTitle').textContent = scenario.title;
+            document.querySelector(`.format-btn[data-format="${APP_STATE.format}"]`).classList.add('active');
+            
+            renderScript();
+        }
+
+        function submitLine() {
+            const input = document.getElementById('inputText');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            APP_STATE.script.push({
+                type: 'dialogue',
+                character: APP_STATE.activeCharacter,
+                content: text,
+                timestamp: Date.now()
+            });
+
+            input.value = '';
+            renderScript();
+            scrollToBottom();
+        }
+
+        function addAction() {
+            const input = document.getElementById('inputText');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            APP_STATE.script.push({
+                type: 'action',
+                content: text,
+                timestamp: Date.now()
+            });
+
+            input.value = '';
+            renderScript();
+            scrollToBottom();
+        }
+
+        function generateAIResponse() {
+            // Simple AI response generator (placeholder)
+            const npcs = APP_STATE.npcs;
+            const randomNPC = npcs[Math.floor(Math.random() * npcs.length)] || 'generic';
+            
+            const responses = [
+                "Interesting perspective. What makes you think that?",
+                "I've been analyzing the situation. We might have a problem.",
+                "Wait... did you see that?",
+                "That's exactly what I was thinking.",
+                "We need to move. Now.",
+                "Let me show you something.",
+                "You're right, but there's more to this.",
+                "I disagree. Here's why..."
+            ];
+
+            const response = responses[Math.floor(Math.random() * responses.length)];
+
+            APP_STATE.script.push({
+                type: 'dialogue',
+                character: randomNPC,
+                content: response,
+                timestamp: Date.now(),
+                isNPC: true
+            });
+
+            renderScript();
+            scrollToBottom();
+        }
+
+        function renderScript() {
+            const container = document.getElementById('scriptContainer');
+            container.innerHTML = '';
+
+            APP_STATE.script.forEach((line, index) => {
+                const element = createScriptElement(line);
+                container.appendChild(element);
+            });
+        }
+
+        function createScriptElement(line) {
+            const div = document.createElement('div');
+
+            if (APP_STATE.format === 'screenplay') {
+                if (line.type === 'action') {
+                    div.className = 'action';
+                    div.textContent = line.content;
+                } else {
+                    div.className = 'screenplay-line';
+                    const charData = line.isNPC ? NPCS[line.character] : CHARACTERS[line.character];
+                    const label = document.createElement('div');
+                    label.className = `character-label ${charData?.color || 'npc'}`;
+                    label.textContent = charData?.name || line.character.toUpperCase();
+                    
+                    const dialogue = document.createElement('div');
+                    dialogue.className = 'dialogue';
+                    dialogue.textContent = line.content;
+                    
+                    div.appendChild(label);
+                    div.appendChild(dialogue);
+                }
+            } else if (APP_STATE.format === 'chat') {
+                if (line.type === 'action') {
+                    div.className = 'action';
+                    div.textContent = line.content;
+                } else {
+                    div.className = `chat-message ${line.character}`;
+                    const charData = line.isNPC ? NPCS[line.character] : CHARACTERS[line.character];
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = `chat-avatar ${charData?.color || 'npc'}`;
+                    avatar.textContent = charData?.icon || '🎭';
+                    
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${charData?.color || 'npc'}`;
+                    
+                    const name = document.createElement('div');
+                    name.className = 'chat-name';
+                    name.textContent = charData?.name || line.character;
+                    
+                    const content = document.createElement('div');
+                    content.textContent = line.content;
+                    
+                    bubble.appendChild(name);
+                    bubble.appendChild(content);
+                    
+                    if (line.character === 'lunara' || (line.isNPC && line.character === 'zero')) {
+                        div.appendChild(avatar);
+                        div.appendChild(bubble);
+                    } else {
+                        div.appendChild(bubble);
+                        div.appendChild(avatar);
+                    }
+                }
+            } else if (APP_STATE.format === 'novel') {
+                div.className = 'novel-paragraph';
+                
+                if (line.type === 'action') {
+                    div.textContent = line.content;
+                } else {
+                    const charData = line.isNPC ? NPCS[line.character] : CHARACTERS[line.character];
+                    const charName = charData?.name || line.character;
+                    div.innerHTML = `${charName} spoke, <span class="novel-dialogue">"${line.content}"</span>`;
+                }
+            }
+
+            return div;
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('scriptContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function saveScene() {
+            const saveData = {
+                state: APP_STATE,
+                timestamp: Date.now(),
+                scenario: SCENARIOS[APP_STATE.scenario].title
+            };
+
+            localStorage.setItem('roleplay_save', JSON.stringify(saveData));
+            
+            // Also download as file
+            const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roleplay-${Date.now()}.json`;
+            a.click();
+            
+            alert('Scene saved! ✅');
+        }
+
+        function loadScene() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const saveData = JSON.parse(event.target.result);
+                        Object.assign(APP_STATE, saveData.state);
+                        
+                        // Restore UI state
+                        document.getElementById('setupScreen').classList.add('hidden');
+                        document.getElementById('sceneScreen').classList.remove('hidden');
+                        
+                        renderScript();
+                        alert('Scene loaded! ✅');
+                    } catch (error) {
+                        alert('Error loading scene file! ❌');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function exportScript() {
+            let exportText = '';
+            const scenario = SCENARIOS[APP_STATE.scenario];
+            
+            exportText += `${scenario.title}\n`;
+            exportText += `${'='.repeat(scenario.title.length)}\n\n`;
+            
+            APP_STATE.script.forEach(line => {
+                if (line.type === 'action') {
+                    exportText += `(${line.content})\n\n`;
+                } else {
+                    const charData = line.isNPC ? NPCS[line.character] : CHARACTERS[line.character];
+                    const name = charData?.name || line.character.toUpperCase();
+                    exportText += `${name}: ${line.content}\n\n`;
+                }
+            });
+
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `script-${Date.now()}.txt`;
+            a.click();
+            
+            alert('Script exported! ✅');
+        }
+
+        function backToSetup() {
+            if (confirm('Return to setup? Current scene will be saved.')) {
+                saveScene();
+                document.getElementById('sceneScreen').classList.add('hidden');
+                document.getElementById('setupScreen').classList.remove('hidden');
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('roleplay_save');
+            if (saved) {
+                try {
+                    const saveData = JSON.parse(saved);
+                    // Don't auto-load, just keep it available
+                    console.log('Previous save found');
+                } catch (e) {
+                    console.error('Error loading save:', e);
+                }
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
